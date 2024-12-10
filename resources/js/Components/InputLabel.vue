@@ -1,14 +1,13 @@
 <script setup>
 defineProps({
-    value: {
+    forId: {
         type: String,
     },
 });
 </script>
 
 <template>
-    <label class="block text-sm font-medium text-gray-700">
-        <span v-if="value">{{ value }}</span>
-        <span v-else><slot /></span>
+    <label :for="forId" class="block text-gray-700 text-sm font-bold mb-2">
+        <slot />
     </label>
 </template>

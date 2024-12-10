@@ -13,14 +13,12 @@ class FileController extends Controller
 {
     public function index(Request $request)
     {
-        $r = File::select(['title', 'path', 'extension', 'size']);
+        $r = File::select(['id','title', 'path', 'extension', 'size']);
         if ($request->has('search')) {
             try {
                 $s = $request->input('search');
                 $r->where('title', 'like', "%$s%");
-            } catch (\Throwable $t) {
-
-            }
+            } catch (\Throwable $t) {}
         }
         $files = $r->orderBy('id', 'desc')->paginate(50/*config('cnf.PAGINATION_SIZE')*/);
         return Inertia::render('File/Index', ['files' => $files]);
@@ -33,12 +31,14 @@ class FileController extends Controller
     {
         $file = $request->file('path');
         $filePath = $file->store('files', 'public');
-        File::create([
-            'path'      => $filePath,
-            'title'     => $request->input('title'),
-            'extension' => $file->extension(),
-            'size'      => $file->getSize(),
-        ]);
+        try {
+            File::create([
+                'path'      => $filePath,
+                'title'     => $request->input('title'),
+                'extension' => $file->extension(),
+                'size'      => $file->getSize(),
+            ]);
+        } catch (\Throwable $t) {}
         return redirect()->route('files.index');
     }
     public function edit(File $file)
@@ -59,7 +59,11 @@ class FileController extends Controller
         }
         $file->title = $request->input('title');
         $file->update();
-        return redirect()->route('files.index');
+        if ( $request->has('redirectURL') && str_starts_with( $request->input('redirectURL'), '/files') ) {
+            return redirect($request->input('redirectURL'));
+        } else {
+            return redirect()->back();
+        }
     }
     public function destroy(File $file)
     {

@@ -1,19 +1,35 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { useForm, Link } from "@inertiajs/vue3";
+import { useForm, Head, Link } from "@inertiajs/vue3";
+import { router } from '@inertiajs/vue3'
+import FileInput from '@/Components/FileInput.vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import TextInput from '@/Components/TextInput.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
 
+const params = new URLSearchParams(document.location.search)
+const backURL = params.has('prev') ? params.get('prev') : '/files';
 const form = useForm({
-  title: "",
-  upload: null,
-
+    title: "",
+    path: null,
 });
 
 const submit = () => {
-  form.post("/files");
-}; 
+    // form.post("/files");
+    router.post('/files', form, {
+        _method: 'put',
+        forceFormData: true,
+    })
+};
+
+const onFileInput = (event) => {
+    form.path = event.target.files[0]
+    form.title = event.target.files[0].name.split('.').slice(0, -1).join('.')
+}
 </script>
 
 <template>
+
     <Head title="Manage Files" />
 
     <AuthenticatedLayout>
@@ -25,44 +41,30 @@ const submit = () => {
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
-                        <Link href="/files"><button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-3">Back</button></Link>
-                        
+                        <Link :href="backURL"
+                            class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 shadow-sm transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 mb-4">
+                        Back
+                        </Link>
+
                         <form @submit.prevent="submit">
                             <div class="mb-4">
-                                <label 
-                                    for="upload" 
-                                    class="block text-gray-700 text-sm font-bold mb-2">
-                                    File:</label>
-                                <input 
-                                    type="file"
-                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="upload" 
-                                    @input="form.upload = $event.target.files[0]" 
-                                    placeholder="Upload file" />
+                                <InputLabel for-id="path">File:</InputLabel>
+                                <FileInput id="path" @file-input="onFileInput" autofocus required />
                                 <progress v-if="form.progress" :value="form.progress.percentage" max="100">
                                     {{ form.progress.percentage }}%
                                 </progress>
                             </div>
 
                             <div class="mb-4">
-                                <label 
-                                    for="title" 
-                                    class="block text-gray-700 text-sm font-bold mb-2">
-                                    Title:</label>
-                                <input 
-                                    type="text" 
-                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                                    placeholder="Enter Title" 
-                                    id="title"
-                                    v-model="form.title" />
-
+                                <InputLabel for-id="title">Title:</InputLabel>
+                                <TextInput id="title" type="text" class="w-full" v-model="form.title"
+                                    placeholder="Enter Title" required />
                             </div>
-
-                            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-3 text-white">
+                            <PrimaryButton type="submit" :class="{ 'opacity-25': form.processing }"
+                                :disabled="form.processing">
                                 Submit
-                            </button>
-
+                            </PrimaryButton>
                         </form>
-
                     </div>
                 </div>
             </div>
