@@ -1,9 +1,9 @@
 # Entries checking project
 ## Server requirements
-- Everything that is required by Laravel v9
+- Everything that is required by Laravel v11
 
 ## Installation guide
-Guide was documented while using Laravel v9
+Guide was documented while using Laravel v11
 
 - create an `.env` file and fullfill it
 - Run commands 
